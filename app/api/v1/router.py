@@ -1,8 +1,10 @@
 from fastapi import APIRouter
 from app.models.response_models import SuccessResponse, ErrorResponse
 from app.core.exceptions import APIException
+from app.api.v1 import auth
 
 router = APIRouter()
+router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 
 @router.get("/pingwithouterror", response_model=SuccessResponse)
 async def ping():

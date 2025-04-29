@@ -3,3 +3,7 @@ uvicorn[standard]
 pydantic
 python-dotenv
 loguru
+pydantic[email]
+PyJWT
+bcrypt<=4.0.1
+passlib
