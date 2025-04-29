@@ -6,6 +6,7 @@ from app.core.logging import setup_logging
 from app.core.exception_handler import api_exception_handler, http_exception_handler
 from app.core.exceptions import APIException
 from app.models.response_models import SuccessResponse, ErrorResponse
+from app.api.v1.router import router as v1_router
 
 # Setup logger
 logger = setup_logging()
@@ -18,6 +19,8 @@ app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG)
 # Register exception handlers globally
 app.add_exception_handler(APIException, api_exception_handler)
 app.add_exception_handler(HTTPException, http_exception_handler)
+
+app.include_router(v1_router, prefix="/api/v1")
 
 @app.get("/", response_model=SuccessResponse)
 async def root():
