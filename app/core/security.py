@@ -1,5 +1,6 @@
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
+from app.core.config import settings
 import jwt  # PyJWT
 
 print("jwt path ------- ", jwt.__file__)  # Should show PyJWT's path
@@ -7,8 +8,10 @@ print("jwt path ------- ", jwt.__file__)  # Should show PyJWT's path
 
 
 # Load secret from env/config later, for now hardcoding
-SECRET_KEY = "WWW.KANISHMALVIYA.XYZ"
-ALGORITHM = "HS256"
+# SECRET_KEY = "WWW.KANISHMALVIYA.XYZ"
+# ALGORITHM = "HS256"
+SECRET_KEY = settings.JWT_SECRET_KEY
+ALGORITHM = settings.JWT_ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

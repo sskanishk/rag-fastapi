@@ -8,6 +8,9 @@ from app.core.exceptions import APIException
 from app.models.response_models import SuccessResponse, ErrorResponse
 from app.api.v1.router import router as v1_router
 
+print("App Name:", settings.APP_NAME)
+print("Debug mode:", settings.DEBUG)
+
 # Setup logger
 logger = setup_logging()
 
