@@ -7,3 +7,6 @@ pydantic[email]
 PyJWT
 bcrypt<=4.0.1
 passlib
+asyncpg
+sqlalchemy[asyncio]
+pgvector
