@@ -10,3 +10,4 @@ passlib
 asyncpg
 sqlalchemy[asyncio]
 pgvector
+pydantic-settings
