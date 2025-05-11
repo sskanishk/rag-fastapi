@@ -3,7 +3,7 @@
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 from app.core.exceptions import APIException
-from app.models.response_models import ErrorResponse
+from app.models.response import ErrorResponse
 from app.core.logging import setup_logging
 
 logger = setup_logging()

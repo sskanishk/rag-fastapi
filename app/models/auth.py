@@ -6,6 +6,7 @@ from typing import Optional
 # Incoming request body for register
 class RegisterRequest(BaseModel):
     email: EmailStr
+    name: str = None
     password: str = Field(min_length=8, max_length=28)
 
     class Config:
