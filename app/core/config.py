@@ -1,8 +1,8 @@
 # app/core/config.py
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field, AnyHttpUrl
 from typing import List, Optional
+import json
 
 class Settings(BaseSettings):
     # App settings
@@ -18,10 +18,22 @@ class Settings(BaseSettings):
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int
 
     # CORS
-    ALLOWED_ORIGINS: List[str]
+    # CORS - load from either JSON or comma-separated string
+    ALLOWED_ORIGINS_RAW: Optional[str] = None
+
+    @property
+    def ALLOWED_ORIGINS(self) -> List[str]:
+        if not self.ALLOWED_ORIGINS_RAW:
+            return []
+        try:
+            # Try JSON first
+            return json.loads(self.ALLOWED_ORIGINS_RAW)
+        except json.JSONDecodeError:
+            # Fall back to comma-separated
+            return [origin.strip() for origin in self.ALLOWED_ORIGINS_RAW.split(",")]
 
     # DB
-    DATABASE_URL: Optional[str]
+    DATABASE_URL: Optional[str] = None
 
     # LLM
     OPENAI_API_KEY: Optional[str]

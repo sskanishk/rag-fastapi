@@ -1,40 +1,37 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
 from datetime import timedelta
-from app.models.auth_models import RegisterRequest, LoginRequest, TokenResponse
-from app.models.response_models import SuccessResponse
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.auth import RegisterRequest, LoginRequest, TokenResponse
+from app.models.response import SuccessResponse
 from app.core.security.jwt import hash_password, verify_password, create_access_token, create_refresh_token
 from app.core.exceptions import APIException
 from app.core.config import settings
+from app.db.session import get_db
+from app.services.user import create_user, get_user_by_email
 
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
-
 router = APIRouter()
 
 # In memory dummy "database"
 dummy_user_db = {}
 
 @router.post("/register", response_model=SuccessResponse)
-async def register_user(user: RegisterRequest):
+async def register_user(user: RegisterRequest, db: AsyncSession = Depends(get_db)):
     try:
-        if user.email in dummy_user_db:
-            raise APIException(detail="User already exists", status_code=400)
-        
-        hashed_pwd = hash_password(user.password)
-        dummy_user_db[user.email] = hashed_pwd
-        
-        return SuccessResponse(status=True, data={"email": user.email}, message="User registered successfully")
+        new_user = await create_user(db, user_data=user)
+        return SuccessResponse(status=True, data={"email": new_user.esmail}, message="User registered successfully")
     except Exception as e:
         raise APIException(detail=str(e) or "Registration failed", status_code=500)
 
 @router.post("/login", response_model=TokenResponse)
-async def login_user(user: LoginRequest):
+async def login_user(user: LoginRequest, db: AsyncSession = Depends(get_db)):
     try:
-        if user.email not in dummy_user_db:
+        existing_user = await get_user_by_email(db, user.email)
+        if not existing_user:
             raise APIException(detail="Invalid credentials", status_code=401)
-        
-        hashed_pwd = dummy_user_db[user.email]
-        
-        if not verify_password(user.password, hashed_pwd):
+
+        if not verify_password(user.password, existing_user.hashed_password):
             raise APIException(detail="Invalid credentials", status_code=401)
         
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -46,5 +43,9 @@ async def login_user(user: LoginRequest):
             refresh_token=refresh_token,
             expires_in=access_token_expires.total_seconds()
         )
+    
+    except APIException as exc:        
+        raise APIException(detail=exc.detail, status_code=exc.status_code)
+    
     except Exception as e:
         raise APIException(detail= str(e) or "Login failed", status_code=500)

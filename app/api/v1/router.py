@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from app.models.response_models import SuccessResponse, ErrorResponse
+from app.models.response import SuccessResponse, ErrorResponse
 from app.core.exceptions import APIException
 from app.api.v1 import auth
 from app.core.security.deps import get_current_user

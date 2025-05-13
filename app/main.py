@@ -5,7 +5,7 @@ from app.core.config import settings
 from app.core.logging import setup_logging
 from app.core.exception_handler import api_exception_handler, http_exception_handler
 from app.core.exceptions import APIException
-from app.models.response_models import SuccessResponse, ErrorResponse
+from app.models.response import SuccessResponse, ErrorResponse
 from app.api.v1.router import router as v1_router
 
 print("App Name:", settings.APP_NAME)
