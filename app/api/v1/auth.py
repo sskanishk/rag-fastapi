@@ -20,7 +20,7 @@ dummy_user_db = {}
 async def register_user(user: RegisterRequest, db: AsyncSession = Depends(get_db)):
     try:
         new_user = await create_user(db, user_data=user)
-        return SuccessResponse(status=True, data={"email": new_user.esmail}, message="User registered successfully")
+        return SuccessResponse(status=True, data={"email": new_user.email}, message="User registered successfully")
     except Exception as e:
         raise APIException(detail=str(e) or "Registration failed", status_code=500)
 
