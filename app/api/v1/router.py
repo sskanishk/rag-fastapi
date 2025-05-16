@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from app.models.response import SuccessResponse, ErrorResponse
 from app.core.exceptions import APIException
 from app.api.v1 import auth
-from app.core.security.deps import get_current_user
+from app.core.security.deps import get_authenticated_user
 
 router = APIRouter()
 router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
@@ -33,7 +33,7 @@ async def ping():
         raise APIException(detail = str(e) or "Failed to ping the service.", status_code = 500)
 
 @router.get("/me", response_model=SuccessResponse)
-async def get_me(current_user: dict = Depends(get_current_user)):
+async def get_me(current_user: dict = Depends(get_authenticated_user)):
     try:
         return SuccessResponse(status=True, data={"user": current_user},message="You are authenticated")
     except Exception as e:
