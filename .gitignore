@@ -9,3 +9,4 @@ venv/
 
 # Logs
 *.log
+data/

@@ -3,6 +3,7 @@ from app.models.response import SuccessResponse, ErrorResponse
 from app.core.exceptions import APIException
 from app.api.v1 import auth
 from app.core.security.deps import get_authenticated_user
+from app.core.rag.ingestion import start
 
 router = APIRouter()
 router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
@@ -39,3 +40,11 @@ async def get_me(current_user: dict = Depends(get_authenticated_user)):
     except Exception as e:
         print('exp ', str(e))
     raise APIException(detail = str(e) or "Failed to me the service.", status_code = 500)
+
+@router.get("/rag", response_model=SuccessResponse)
+async def rag():
+    try:
+        data = await start()
+        return SuccessResponse(status=True, data=data)
+    except Exception as e:
+        raise APIException(detail = str(e) or "Failed to ping the service.", status_code = 500)
