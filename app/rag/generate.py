@@ -2,8 +2,8 @@ import aiohttp
 import asyncio
 import json
 from typing import Dict, List
-from app.core.rag.vectorstore import retrieve_relevant_context
-from app.core.rag.local_embeddings.ollama import get_ollama_embeddings
+from app.rag.vectorstore import retrieve_relevant_context
+from app.rag.local_embeddings.ollama import get_ollama_embeddings
 from app.db.session import AsyncSessionFactory
 from app.core.config import settings
 

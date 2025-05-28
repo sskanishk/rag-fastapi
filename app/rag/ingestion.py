@@ -2,14 +2,14 @@ import asyncio
 import os
 from app.core.logging import setup_logging
 
-from app.core.rag.local_embeddings.ollama import get_ollama_embeddings
+from app.rag.local_embeddings.ollama import get_ollama_embeddings
 from app.db.models.document import Document
 from app.db.base import Base
 from app.db.session import engine, AsyncSessionFactory
-from app.core.rag.loaders import load_pdf_documents_from_directory
-from app.core.rag.chunking import split_text_into_chunks
-from app.core.rag.vectorstore import store_documents
-from app.core.rag.local_embeddings.huggingface import get_hf_embedding_model
+from app.rag.loaders import load_pdf_documents_from_directory
+from app.rag.chunking import split_text_into_chunks
+from app.rag.vectorstore import store_documents
+from app.rag.local_embeddings.huggingface import get_hf_embedding_model
 
 # Setup logging
 logger = setup_logging()

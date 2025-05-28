@@ -3,8 +3,8 @@ from app.models.response import SuccessResponse, ErrorResponse
 from app.core.exceptions import APIException
 from app.api.v1 import auth
 from app.core.security.deps import get_authenticated_user
-from app.core.rag.ingestion import start
-from app.core.rag.generate import questionanswer
+from app.rag.ingestion import start
+from app.rag.generate import questionanswer
 import json
 
 router = APIRouter()
