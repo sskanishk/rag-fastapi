@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int
+    HF_TOKEN: str
 
     # CORS
     # CORS - load from either JSON or comma-separated string
