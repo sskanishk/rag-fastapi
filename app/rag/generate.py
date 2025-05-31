@@ -1,9 +1,7 @@
 import aiohttp
-import asyncio
-import json
-from typing import Dict, List
 from app.rag.vectorstore import retrieve_relevant_context
 from app.rag.local_embeddings.ollama import get_ollama_embeddings
+from app.rag.local_embeddings.huggingface import get_hf_embedding_model
 from app.db.session import AsyncSessionFactory
 from app.core.config import settings
 
@@ -28,13 +26,16 @@ Answer the question using ONLY the context below. Follow these rules:
 ### Response:
 """
 
+# ollama embedding works with similarity_threshold less than 0.7
+# huggingface sentence-transformers embedding works with similarity_threshold less than 0.5
+# note adjust similarity_threshold based on choosen embedding model 
 
 async def find_similar_embeddings(query_embedding: list) -> list:
     async with AsyncSessionFactory() as session:
         return await retrieve_relevant_context(
             session=session,
             query_embedding=query_embedding,
-            similarity_threshold=0.5,
+            similarity_threshold=0.7,
             top_k=3
         )
 
@@ -62,11 +63,12 @@ async def query_hf_api(payload: dict) -> str:
             return result[0]['generated_text']
 
 
-async def questionanswer(prompt_data: dict) -> dict:
-    question = prompt_data['prompt'][0]
+async def main(prompt_data: dict) -> dict:
+    question = prompt_data['prompt']
     
     # Create embeddings
     embedder = get_ollama_embeddings()
+    # embedder = get_hf_embedding_model()
     embeddings = embedder.embed_query(question)
     
     # Retrieve context

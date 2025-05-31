@@ -72,7 +72,12 @@ async def retrieve_relevant_context_old(
         raise RuntimeError(f"Failed to retrieve documents: {str(e)}") from e
 
 
-async def retrieve_relevant_context(session: AsyncSession, query_embedding: list[float], similarity_threshold: float = 0.75, top_k: int = 3):
+async def retrieve_relevant_context(
+        session: AsyncSession, 
+        query_embedding: list[float], 
+        similarity_threshold: float = 0.75, 
+        top_k: int = 3
+    ):
     # Convert to PostgreSQL vector format
     pg_vector = "[" + ",".join(map(str, query_embedding)) + "]"
 

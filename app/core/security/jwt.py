@@ -3,10 +3,14 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from app.core.config import settings
 import jwt  # PyJWT
+from app.core.logging import setup_logging
 
-print("jwt path ------- ", jwt.__file__)  # Should show PyJWT's path
+# print("jwt path ------- ", jwt.__file__)  # Should show PyJWT's path
 # from jwt import PyJWTError  # for error handling later if needed
 
+
+# Setup logger
+logger = setup_logging()
 
 # Load secret from env/config later, for now hardcoding
 # SECRET_KEY = "WWW.KANISHMALVIYA.XYZ"
@@ -52,7 +56,9 @@ def verify_token(token: str) -> Optional[dict]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except jwt.ExpiredSignatureError:
-        return None  # Token expired
-    except jwt.InvalidTokenError:
-        return None  # Invalid token
+    except jwt.ExpiredSignatureError as e:
+        logger.warning(f"ExpiredSignatureError: {str(e)}")
+        raise ValueError("Token expired")
+    except jwt.InvalidTokenError as e:
+        logger.warning(f"InvalidTokenError: {str(e)}")
+        raise ValueError("Inavlid Token")

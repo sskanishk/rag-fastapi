@@ -6,14 +6,21 @@ from typing import Optional
 # Incoming request body for register
 class RegisterRequest(BaseModel):
     email: EmailStr
-    name: str = None
+    name: str
     password: str = Field(min_length=8, max_length=28)
 
     class Config:
         json_schema_extra = {
             'email': 'example@email.com',
-            'password': 'Example@123!'
+            'password': 'Example@123!',
+            'name': 'John Snow'
         }
+
+    @field_validator('name')
+    def validate_name(cls, value: str) -> str:
+        if len(value) == 0 or value is None:
+            raise ValueError("Name is requried")
+        return value
     
     @field_validator('password')
     def validate_password_strength(cls, value: str) -> str:
