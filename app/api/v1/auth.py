@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.auth import RegisterRequest, LoginRequest, TokenResponse
 from app.models.response import SuccessResponse
-from app.core.security.jwt import hash_password, verify_password, create_access_token, create_refresh_token
+from app.core.security.jwt import verify_password, create_access_token, create_refresh_token
 from app.core.exceptions import APIException
 from app.core.config import settings
 from app.db.session import get_db
@@ -12,9 +12,6 @@ from app.services.user import create_user, get_user_by_email
 
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
 router = APIRouter()
-
-# In memory dummy "database"
-dummy_user_db = {}
 
 @router.post("/register", response_model=SuccessResponse)
 async def register_user(user: RegisterRequest, db: AsyncSession = Depends(get_db)):
