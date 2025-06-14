@@ -4,6 +4,8 @@ from app.rag.local_embeddings.ollama import get_ollama_embeddings
 from app.rag.local_embeddings.huggingface import get_hf_embedding_model
 from app.db.session import AsyncSessionFactory
 from app.core.config import settings
+from app.rag.vectorstore import store_chats
+
 
 HF_API_URL = f"https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3"
 HEADERS = {
@@ -69,10 +71,10 @@ async def main(prompt_data: dict) -> dict:
     # Create embeddings
     embedder = get_ollama_embeddings()
     # embedder = get_hf_embedding_model()
-    embeddings = embedder.embed_query(question)
+    question_embeddings = embedder.embed_query(question)
     
     # Retrieve context
-    context_docs = await find_similar_embeddings(embeddings)
+    context_docs = await find_similar_embeddings(question_embeddings)
     if not context_docs:
         return {"answer": "No relevant context found", "sources": []}
     
@@ -92,12 +94,14 @@ async def main(prompt_data: dict) -> dict:
     
     try:
         response = await query_hf_api(payload)
+        response_embeddings = embedder.embed_query(response.strip())
+
+        async with AsyncSessionFactory() as session:
+            await store_chats(session, question, question_embeddings, response.strip(), response_embeddings, 'kanish')
+
         return {
             "answer": response.strip(),
             "sources": [doc["metadata"] for doc in context_docs]
         }
     except Exception as e:
-        return {
-            "answer": f"Error generating response: {str(e)}",
-            "sources": []
-        }
+        raise Exception(f"Error generating response: {str(e)}")
