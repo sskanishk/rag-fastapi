@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models.document import Document
+from app.db.models.chat import Chat
 from typing import Optional, List
 from sqlalchemy import select, Float, cast, text
 from sqlalchemy.sql.expression import func
@@ -26,6 +27,27 @@ async def store_documents(
     except Exception as e:
         await session.rollback()
         raise RuntimeError("Failed to store documents") from e
+    
+
+async def store_chats(
+        session: AsyncSession, 
+        question: str, 
+        question_embedding: list[float], 
+        response: str, 
+        response_embedding: list[float],
+        created_by: str
+    ):
+    if len(question) == 0:
+        raise ValueError("Invalid question")
+
+    try:
+        chat = Chat(question=question, question_embedding=question_embedding, response=response, response_embedding=response_embedding, created_by=created_by)
+        session.add(chat)        
+        await session.commit()
+    except Exception as e:
+        print("store chat ", e)
+        await session.rollback()
+        raise RuntimeError("Failed to store chats") from e
 
 
 async def retrieve_relevant_context_old(
