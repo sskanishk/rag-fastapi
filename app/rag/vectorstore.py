@@ -120,3 +120,34 @@ async def retrieve_relevant_context(
         }
     )
     return result.mappings().all()
+
+
+async def retrieve_relevant_context_from_cache(
+        session: AsyncSession, 
+        question_embedding: list[float], 
+        similarity_threshold: float = 0.75, 
+        top_k: int = 3
+    ):
+    # Convert to PostgreSQL vector format
+    pg_vector = "[" + ",".join(map(str, question_embedding)) + "]"
+
+    print("pg_vector ====> ", pg_vector)
+
+    stmt = text("""
+        SELECT question, response, 1 - (question_embedding <=> :embedding) as similarity
+        FROM chats
+        WHERE 1 - (question_embedding <=> :embedding) > :threshold
+        ORDER BY question_embedding <=> :embedding
+        LIMIT :limit
+    """)
+    
+    result = await session.execute(
+        stmt,
+        {
+            "embedding": pg_vector,
+            "threshold": similarity_threshold,
+            "limit": top_k
+        }
+    )
+    return result.mappings().all()
+

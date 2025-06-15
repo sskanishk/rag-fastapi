@@ -1,5 +1,6 @@
 import aiohttp
-from app.rag.vectorstore import retrieve_relevant_context
+from app.models.response import AnswerContent, CachedSource
+from app.rag.vectorstore import retrieve_relevant_context, retrieve_relevant_context_from_cache
 from app.rag.local_embeddings.ollama import get_ollama_embeddings
 from app.rag.local_embeddings.huggingface import get_hf_embedding_model
 from app.db.session import AsyncSessionFactory
@@ -41,6 +42,15 @@ async def find_similar_embeddings(query_embedding: list) -> list:
             top_k=3
         )
 
+async def find_from_cache(question_embedding: list) -> list:
+    async with AsyncSessionFactory() as session:
+        return await retrieve_relevant_context_from_cache(
+            session=session,
+            question_embedding=question_embedding,
+            similarity_threshold=0.7,
+            top_k=3
+        )
+
 
 def format_context(docs: list) -> str:
     return "\n\n".join(
@@ -71,10 +81,19 @@ async def main(prompt_data: dict) -> dict:
     # Create embeddings
     embedder = get_ollama_embeddings()
     # embedder = get_hf_embedding_model()
-    question_embeddings = embedder.embed_query(question)
+    question_embedding = embedder.embed_query(question)
+
+    # Check in cache
+    resp = await find_from_cache(question_embedding)
+    print("res ponse >>>>>>>>>>>. ", resp)
+    if len(resp) > 0:
+        answer_text = resp[0]['response']
+        source_objects = [CachedSource(**item) for item in resp]
+        answer_content_data = AnswerContent(answer=answer_text, sources=source_objects)
+        return answer_content_data
     
     # Retrieve context
-    context_docs = await find_similar_embeddings(question_embeddings)
+    context_docs = await find_similar_embeddings(question_embedding)
     if not context_docs:
         return {"answer": "No relevant context found", "sources": []}
     
@@ -97,7 +116,7 @@ async def main(prompt_data: dict) -> dict:
         response_embeddings = embedder.embed_query(response.strip())
 
         async with AsyncSessionFactory() as session:
-            await store_chats(session, question, question_embeddings, response.strip(), response_embeddings, 'kanish')
+            await store_chats(session, question, question_embedding, response.strip(), response_embeddings, 'kanish')
 
         return {
             "answer": response.strip(),
