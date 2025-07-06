@@ -1,6 +1,7 @@
 import asyncio
 import os
 from app.core.logging import setup_logging
+from app.core.config import settings
 
 from app.rag.local_embeddings.ollama import get_ollama_embeddings
 from app.db.models.document import Document
@@ -49,8 +50,10 @@ async def run_ingestion_pipeline(texts, metadatas):
         logger.info("Database schema created or verified.")
 
         # Use local embedding model (choose only one)
-        embedder = get_ollama_embeddings()
-        # embedder = get_hf_embedding_model()
+        if settings.MODEL_FLOW == 'ollama':
+            embedder = get_ollama_embeddings()
+        else:
+            embedder = get_hf_embedding_model()
 
         embeddings = embedder.embed_documents(texts)
 

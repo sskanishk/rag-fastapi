@@ -77,15 +77,18 @@ async def query_hf_api(payload: dict) -> str:
 
 async def main(prompt_data: dict) -> dict:
     question = prompt_data['prompt']
-    
+
     # Create embeddings
-    embedder = get_ollama_embeddings()
-    # embedder = get_hf_embedding_model()
+    if settings.MODEL_FLOW == 'ollama':
+        embedder = get_ollama_embeddings()
+    else:
+        embedder = get_hf_embedding_model()
+
     question_embedding = embedder.embed_query(question)
 
     # Check in cache
     resp = await find_from_cache(question_embedding)
-    print("res ponse >>>>>>>>>>>. ", resp)
+    # print("res ponse >>>>>>>>>>>. ", resp)
     if len(resp) > 0:
         answer_text = resp[0]['response']
         source_objects = [CachedSource(**item) for item in resp]

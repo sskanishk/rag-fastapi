@@ -48,5 +48,8 @@ class Settings(BaseSettings):
         case_sensitive=True,  # Makes env var names case-sensitive
     )
 
+    # Model Flow
+    MODEL_FLOW: str
+
 # Singleton instance to use across application
 settings = Settings()
