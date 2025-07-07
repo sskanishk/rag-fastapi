@@ -9,6 +9,8 @@ from app.rag.vectorstore import store_chats
 
 
 HF_API_URL = f"https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3"
+# HF_API_URL = f"https://api-inference.huggingface.co/models/sshleifer/distilbart-cnn-12-6"
+
 HEADERS = {
     "Authorization": f"Bearer {settings.HF_TOKEN}"
 }
@@ -72,7 +74,12 @@ async def query_hf_api(payload: dict) -> str:
                 raise Exception(f"HF API error {response.status}: {error}")
                 
             result = await response.json()
-            return result[0]['generated_text']
+            if 'generated_text' in result[0]:
+                return result[0]['generated_text']
+            elif 'summary_text' in result[0]:
+                return result[0]['summary_text']
+            else:
+                raise Exception(f"HF API error: Unexcpected response structure found.")
 
 
 async def main(prompt_data: dict) -> dict:
