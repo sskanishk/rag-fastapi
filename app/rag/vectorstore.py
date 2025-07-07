@@ -44,6 +44,7 @@ async def store_chats(
         chat = Chat(question=question, question_embedding=question_embedding, response=response, response_embedding=response_embedding, created_by=created_by)
         session.add(chat)        
         await session.commit()
+        return chat
     except Exception as e:
         print("store chat ", e)
         await session.rollback()
@@ -134,7 +135,7 @@ async def retrieve_relevant_context_from_cache(
     print("pg_vector ====> ", pg_vector)
 
     stmt = text("""
-        SELECT question, response, 1 - (question_embedding <=> :embedding) as similarity
+        SELECT id, question, response, 1 - (question_embedding <=> :embedding) as similarity
         FROM chats
         WHERE 1 - (question_embedding <=> :embedding) > :threshold
         ORDER BY question_embedding <=> :embedding

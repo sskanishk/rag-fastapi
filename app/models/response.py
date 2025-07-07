@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Any, Optional, List
+from uuid import UUID
 
 class SuccessResponse(BaseModel):
     status: bool
@@ -12,6 +13,7 @@ class CachedSource(BaseModel):
     similarity: float
 
 class AnswerContent(BaseModel):
+    id: Optional[UUID] = None
     answer: str
     sources: List[CachedSource]
 
