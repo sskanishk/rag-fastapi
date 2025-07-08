@@ -2,9 +2,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models.document import Document
 from app.db.models.chat import Chat
 from typing import Optional, List
-from sqlalchemy import select, Float, cast, text
+from sqlalchemy import select, Float, cast, text, Boolean, update, select
 from sqlalchemy.sql.expression import func
 from pgvector.sqlalchemy import Vector
+from sqlalchemy.exc import NoResultFound
 
 async def store_documents(
         session: AsyncSession, 
@@ -44,6 +45,7 @@ async def store_chats(
         chat = Chat(question=question, question_embedding=question_embedding, response=response, response_embedding=response_embedding, created_by=created_by)
         session.add(chat)        
         await session.commit()
+        return chat
     except Exception as e:
         print("store chat ", e)
         await session.rollback()
@@ -134,7 +136,7 @@ async def retrieve_relevant_context_from_cache(
     print("pg_vector ====> ", pg_vector)
 
     stmt = text("""
-        SELECT question, response, 1 - (question_embedding <=> :embedding) as similarity
+        SELECT id, question, response, 1 - (question_embedding <=> :embedding) as similarity
         FROM chats
         WHERE 1 - (question_embedding <=> :embedding) > :threshold
         ORDER BY question_embedding <=> :embedding
@@ -151,3 +153,26 @@ async def retrieve_relevant_context_from_cache(
     )
     return result.mappings().all()
 
+
+async def mark_chat_response_by_id(session:AsyncSession, id:str, is_helpful:Boolean = None):
+    try:
+        stmt = (
+            update(Chat).where(Chat.id == id).values(
+                **{
+                    k: v for k, v in { "is_helpful": is_helpful }.items() if v is not None
+                }
+            )
+            .execution_options(synchronize_session="fetch")
+        )
+        result = await session.execute(stmt)
+        await session.commit()
+
+        if result.rowcount == 0:
+            raise NoResultFound(f"No record found for id: {id}")
+
+        return True
+
+    except Exception as e:
+        await session.rollback()
+        print("mark_chat_response_by_id error:", e)
+        raise RuntimeError("Failed to update chat") from e

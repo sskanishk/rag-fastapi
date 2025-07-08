@@ -8,7 +8,9 @@ from app.core.config import settings
 from app.rag.vectorstore import store_chats
 
 
-HF_API_URL = f"https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3"
+# HF_API_URL = f"https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3"
+HF_API_URL = f"https://api-inference.huggingface.co/models/sshleifer/distilbart-cnn-12-6"
+
 HEADERS = {
     "Authorization": f"Bearer {settings.HF_TOKEN}"
 }
@@ -38,7 +40,7 @@ async def find_similar_embeddings(query_embedding: list) -> list:
         return await retrieve_relevant_context(
             session=session,
             query_embedding=query_embedding,
-            similarity_threshold=0.7,
+            similarity_threshold=0.3,
             top_k=3
         )
 
@@ -72,7 +74,13 @@ async def query_hf_api(payload: dict) -> str:
                 raise Exception(f"HF API error {response.status}: {error}")
                 
             result = await response.json()
-            return result[0]['generated_text']
+            if 'generated_text' in result[0]:
+                payload['parameters']['return_full_text'] = False
+                return result[0]['generated_text']
+            elif 'summary_text' in result[0]:
+                return result[0]['summary_text']
+            else:
+                raise Exception(f"HF API error: Unexcpected response structure found.")
 
 
 async def main(prompt_data: dict) -> dict:
@@ -90,9 +98,10 @@ async def main(prompt_data: dict) -> dict:
     resp = await find_from_cache(question_embedding)
     # print("res ponse >>>>>>>>>>>. ", resp)
     if len(resp) > 0:
+        id = resp[0]['id']
         answer_text = resp[0]['response']
         source_objects = [CachedSource(**item) for item in resp]
-        answer_content_data = AnswerContent(answer=answer_text, sources=source_objects)
+        answer_content_data = AnswerContent(id=id, answer=answer_text, sources=source_objects)
         return answer_content_data
     
     # Retrieve context
@@ -110,7 +119,7 @@ async def main(prompt_data: dict) -> dict:
         "parameters": {
             "temperature": 0.3,
             "max_new_tokens": 1024,
-            "return_full_text": False
+            # "return_full_text": False
         }
     }
     
@@ -119,9 +128,11 @@ async def main(prompt_data: dict) -> dict:
         response_embeddings = embedder.embed_query(response.strip())
 
         async with AsyncSessionFactory() as session:
-            await store_chats(session, question, question_embedding, response.strip(), response_embeddings, 'kanish')
+            store_chats_response = await store_chats(session, question, question_embedding, response.strip(), response_embeddings, 'kanish')
+            # print("store_chats_response >>>>> ", store_chats_response)
 
         return {
+            "id": store_chats_response.id,
             "answer": response.strip(),
             "sources": [doc["metadata"] for doc in context_docs]
         }
