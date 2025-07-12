@@ -138,7 +138,7 @@ async def retrieve_relevant_context_from_cache(
     stmt = text("""
         SELECT id, question, response, 1 - (question_embedding <=> :embedding) as similarity
         FROM chats
-        WHERE 1 - (question_embedding <=> :embedding) > :threshold
+        WHERE 1 - (question_embedding <=> :embedding) > :threshold AND is_helpful <> False
         ORDER BY question_embedding <=> :embedding
         LIMIT :limit
     """)
