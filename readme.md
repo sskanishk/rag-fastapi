@@ -57,6 +57,8 @@ A minimal RAG backend using Python, FastAPI, and vector similarity search. The a
 
 You can switch between embedding models by setting the `MODEL_FLOW` in the `.env` file:
 
+Ref: [.env.sample](https://github.com/sskanishk/rag-fastapi/blob/master/.env.sample)
+
 ### Ollama
 Uses [langchain_ollama](https://python.langchain.com/docs/integrations/text_embedding/ollama/):
 ```python
